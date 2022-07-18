@@ -1,0 +1,11 @@
+---
+stargate:
+  enabled: false
+
+monitoring:
+  grafana:
+    provision_dashboards: false
+  prometheus:
+    provision_service_monitors: false
+kube-prometheus-stack:
+  enabled: false

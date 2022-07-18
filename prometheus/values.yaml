@@ -1,0 +1,284 @@
+---
+extraScrapeConfigs: |
+  - job_name: 'k8ssandra-exporter'
+    static_configs:
+      - targets:
+        - k8ssandra-dc1-service.database:9103
+    metric_relabel_configs:
+    - regex: collectd_mcac_(meter|histogram).*
+      source_labels:
+      - __name__
+      replacement: ${1}
+      target_label: kind
+    - action: drop
+      regex: .*rate_(mean|1m|5m|15m)
+      source_labels:
+      - __name__
+    - regex: (collectd_mcac_.+)
+      replacement: ${1}
+      source_labels:
+      - __name__
+      target_label: prom_name
+    - regex: .+_bucket_(\d+)
+      replacement: ${1}
+      source_labels:
+      - prom_name
+      target_label: le
+    - regex: .+_bucket_inf
+      replacement: +Inf
+      source_labels:
+      - prom_name
+      target_label: le
+    - regex: .*_histogram_p(\d+)
+      replacement: .${1}
+      source_labels:
+      - prom_name
+      target_label: quantile
+    - regex: .*_histogram_min
+      replacement: '0'
+      source_labels:
+      - prom_name
+      target_label: quantile
+    - regex: .*_histogram_max
+      replacement: '1'
+      source_labels:
+      - prom_name
+      target_label: quantile
+    - action: drop
+      regex: org\.apache\.cassandra\.metrics\.table\.(\w+)
+      source_labels:
+      - mcac
+    - regex: org\.apache\.cassandra\.metrics\.table\.(\w+)\.(\w+)\.(\w+)
+      replacement: ${3}
+      source_labels:
+      - mcac
+      target_label: table
+    - regex: org\.apache\.cassandra\.metrics\.table\.(\w+)\.(\w+)\.(\w+)
+      replacement: ${2}
+      source_labels:
+      - mcac
+      target_label: keyspace
+    - regex: org\.apache\.cassandra\.metrics\.table\.(\w+)\.(\w+)\.(\w+)
+      replacement: mcac_table_${1}
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: org\.apache\.cassandra\.metrics\.keyspace\.(\w+)\.(\w+)
+      replacement: ${2}
+      source_labels:
+      - mcac
+      target_label: keyspace
+    - regex: org\.apache\.cassandra\.metrics\.keyspace\.(\w+)\.(\w+)
+      replacement: mcac_keyspace_${1}
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: org\.apache\.cassandra\.metrics\.thread_pools\.(\w+)\.(\w+)\.(\w+).*
+      replacement: ${2}
+      source_labels:
+      - mcac
+      target_label: pool_type
+    - regex: org\.apache\.cassandra\.metrics\.thread_pools\.(\w+)\.(\w+)\.(\w+).*
+      replacement: ${3}
+      source_labels:
+      - mcac
+      target_label: pool_name
+    - regex: org\.apache\.cassandra\.metrics\.thread_pools\.(\w+)\.(\w+)\.(\w+).*
+      replacement: mcac_thread_pools_${1}
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: org\.apache\.cassandra\.metrics\.client_request\.(\w+)\.(\w+)$
+      replacement: ${2}
+      source_labels:
+      - mcac
+      target_label: request_type
+    - regex: org\.apache\.cassandra\.metrics\.client_request\.(\w+)\.(\w+)$
+      replacement: mcac_client_request_${1}
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: org\.apache\.cassandra\.metrics\.client_request\.(\w+)\.(\w+)\.(\w+)$
+      replacement: ${3}
+      source_labels:
+      - mcac
+      target_label: cl
+    - regex: org\.apache\.cassandra\.metrics\.client_request\.(\w+)\.(\w+)\.(\w+)$
+      replacement: ${2}
+      source_labels:
+      - mcac
+      target_label: request_type
+    - regex: org\.apache\.cassandra\.metrics\.client_request\.(\w+)\.(\w+)\.(\w+)$
+      replacement: mcac_client_request_${1}_cl
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: org\.apache\.cassandra\.metrics\.cache\.(\w+)\.(\w+)
+      replacement: ${2}
+      source_labels:
+      - mcac
+      target_label: cache_name
+    - regex: org\.apache\.cassandra\.metrics\.cache\.(\w+)\.(\w+)
+      replacement: mcac_cache_${1}
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: org\.apache\.cassandra\.metrics\.cql\.(\w+)
+      replacement: mcac_cql_${1}
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: org\.apache\.cassandra\.metrics\.dropped_message\.(\w+)\.(\w+)
+      replacement: ${2}
+      source_labels:
+      - mcac
+      target_label: message_type
+    - regex: org\.apache\.cassandra\.metrics\.dropped_message\.(\w+)\.(\w+)
+      replacement: mcac_dropped_message_${1}
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: org\.apache\.cassandra\.metrics\.streaming\.(\w+)\.(.+)$
+      replacement: ${2}
+      source_labels:
+      - mcac
+      target_label: peer_ip
+    - regex: org\.apache\.cassandra\.metrics\.streaming\.(\w+)\.(.+)$
+      replacement: mcac_streaming_${1}
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: org\.apache\.cassandra\.metrics\.streaming\.(\w+)$
+      replacement: mcac_streaming_${1}
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: org\.apache\.cassandra\.metrics\.commit_log\.(\w+)
+      replacement: mcac_commit_log_${1}
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: org\.apache\.cassandra\.metrics\.compaction\.(\w+)
+      replacement: mcac_compaction_${1}
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: org\.apache\.cassandra\.metrics\.storage\.(\w+)
+      replacement: mcac_storage_${1}
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: org\.apache\.cassandra\.metrics\.batch\.(\w+)
+      replacement: mcac_batch_${1}
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: org\.apache\.cassandra\.metrics\.client\.(\w+)
+      replacement: mcac_client_${1}
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: org\.apache\.cassandra\.metrics\.buffer_pool\.(\w+)
+      replacement: mcac_buffer_pool_${1}
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: org\.apache\.cassandra\.metrics\.index\.(\w+)
+      replacement: mcac_sstable_index_${1}
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: org\.apache\.cassandra\.metrics\.hinted_hand_off_manager\.([^\-]+)-(\w+)
+      replacement: ${2}
+      source_labels:
+      - mcac
+      target_label: peer_ip
+    - regex: org\.apache\.cassandra\.metrics\.hinted_hand_off_manager\.([^\-]+)-(\w+)
+      replacement: mcac_hints_${1}
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: org\.apache\.cassandra\.metrics\.hints_service\.hints_delays\-(\w+)
+      replacement: ${1}
+      source_labels:
+      - mcac
+      target_label: peer_ip
+    - regex: org\.apache\.cassandra\.metrics\.hints_service\.hints_delays\-(\w+)
+      replacement: mcac_hints_hints_delays
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: org\.apache\.cassandra\.metrics\.hints_service\.([^\-]+)
+      replacement: mcac_hints_${1}
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: org\.apache\.cassandra\.metrics\.memtable_pool\.(\w+)
+      replacement: mcac_memtable_pool_${1}
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: com\.datastax\.bdp\.type\.performance_objects\.name\.cql_slow_log\.metrics\.queries_latency
+      replacement: mcac_cql_slow_log_query_latency
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: org\.apache\.cassandra\.metrics\.read_coordination\.(.*)
+      replacement: $1
+      source_labels:
+      - mcac
+      target_label: read_type
+    - regex: jvm\.gc\.(\w+)\.(\w+)
+      replacement: ${1}
+      source_labels:
+      - mcac
+      target_label: collector_type
+    - regex: jvm\.gc\.(\w+)\.(\w+)
+      replacement: mcac_jvm_gc_${2}
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: jvm\.memory\.(\w+)\.(\w+)
+      replacement: ${1}
+      source_labels:
+      - mcac
+      target_label: memory_type
+    - regex: jvm\.memory\.(\w+)\.(\w+)
+      replacement: mcac_jvm_memory_${2}
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: jvm\.memory\.pools\.(\w+)\.(\w+)
+      replacement: ${2}
+      source_labels:
+      - mcac
+      target_label: pool_name
+    - regex: jvm\.memory\.pools\.(\w+)\.(\w+)
+      replacement: mcac_jvm_memory_pool_${2}
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: jvm\.fd\.usage
+      replacement: mcac_jvm_fd_usage
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: jvm\.buffers\.(\w+)\.(\w+)
+      replacement: ${1}
+      source_labels:
+      - mcac
+      target_label: buffer_type
+    - regex: jvm\.buffers\.(\w+)\.(\w+)
+      replacement: mcac_jvm_buffer_${2}
+      source_labels:
+      - mcac
+      target_label: __name__
+    - regex: (mcac_.*);.*(_micros_bucket|_bucket|_micros_count_total|_count_total|_total|_micros_sum|_sum|_stddev).*
+      replacement: ${1}${2}
+      separator: ;
+      source_labels:
+      - __name__
+      - prom_name
+      target_label: __name__
+    - action: labeldrop
+      regex: prom_name
